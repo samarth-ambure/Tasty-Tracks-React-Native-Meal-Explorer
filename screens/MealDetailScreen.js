@@ -1,40 +1,55 @@
-// screens/MealDetailScreen.js
-import { useLayoutEffect } from 'react';
+import { useContext, useLayoutEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { MEALS } from '../data/dummy-data';
 import { Ionicons } from '@expo/vector-icons';
 
+import { FavoritesContext } from '../store/favorites-context';
+import { MEALS } from '../data/dummy-data';
+
 function MealDetailScreen({ route, navigation }) {
+  const favoriteMealsCtx = useContext(FavoritesContext);
+
   const mealId = route.params.mealId;
   const selectedMeal = MEALS.find((meal) => meal.id === mealId);
 
-  function headerButtonPressHandler() {
-    console.log('Marked as favorite!');
+  const mealIsFavorite = favoriteMealsCtx.ids.includes(mealId);
+
+  function changeFavoriteStatusHandler() {
+    if (mealIsFavorite) {
+      favoriteMealsCtx.removeFavorite(mealId);
+    } else {
+      favoriteMealsCtx.addFavorite(mealId);
+    }
   }
- 
+
+  // Merged into ONE hook with the correct dependency array
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => {
         return (
           <Pressable 
-            onPress={headerButtonPressHandler}
+            onPress={changeFavoriteStatusHandler}
             style={({ pressed }) => pressed && { opacity: 0.7 }}
           >
-            <Ionicons name="star" size={24} color="white" />
+            <Ionicons 
+              name={mealIsFavorite ? 'star' : 'star-outline'} 
+              size={24} 
+              color={mealIsFavorite ? '#e2b497' : 'white'} // Changes color to gold
+            />
           </Pressable>
         );
       },
     });
-  }, [navigation, headerButtonPressHandler]);
+  }, [navigation, changeFavoriteStatusHandler, mealIsFavorite]); 
+
   return (
     <ScrollView style={styles.rootContainer}>
       <Image style={styles.image} source={{ uri: selectedMeal.imageUrl }} />
       <Text style={styles.title}>{selectedMeal.title}</Text>
       
       <View style={styles.details}>
-        <Text>{selectedMeal.duration}m</Text>
-        <Text>{selectedMeal.complexity.toUpperCase()}</Text>
-        <Text>{selectedMeal.affordability.toUpperCase()}</Text>
+        <Text style={styles.detailItem}>{selectedMeal.duration}m</Text>
+        <Text style={styles.detailItem}>{selectedMeal.complexity.toUpperCase()}</Text>
+        <Text style={styles.detailItem}>{selectedMeal.affordability.toUpperCase()}</Text>
       </View>
 
       <View style={styles.listOuterContainer}>
@@ -73,7 +88,7 @@ const styles = StyleSheet.create({
     fontSize: 24, 
     margin: 8, 
     textAlign: 'center', 
-    color: 'white' // Necessary for dark theme
+    color: 'white' 
   },
   details: { 
     flexDirection: 'row', 
@@ -84,18 +99,18 @@ const styles = StyleSheet.create({
   detailItem: {
     marginHorizontal: 4,
     fontSize: 12,
-    color: 'white' // Makes duration/complexity visible
+    color: 'white' 
   },
   subtitle: {
-    color: '#e2b497', // Soft Gold
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    borderBottomColor: '#e2b497',
-    borderBottomWidth: 2,
-    marginHorizontal: 24,
-    marginVertical: 4,
-    padding: 6,
+    color: '#e2b497', 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    textAlign: 'center', 
+    borderBottomColor: '#e2b497', 
+    borderBottomWidth: 2, 
+    marginHorizontal: 24, 
+    marginVertical: 4, 
+    padding: 6 
   },
   listOuterContainer: { 
     alignItems: 'center' 
@@ -109,10 +124,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     marginVertical: 4,
     marginHorizontal: 12,
-    backgroundColor: '#e2b497', // Gold background
+    backgroundColor: '#e2b497', 
   },
   itemText: {
-    color: '#351401', // Dark text for readability on gold
+    color: '#351401', 
     textAlign: 'center',
   },
 });
